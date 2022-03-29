@@ -13,6 +13,9 @@ contactHost=SMTP_HOST.com
 
 You will need to setup a webmail account on a server. You can do this easily through services like Plesk (if you have that installed on your server). There are other methods too. Read up on [Node Mailer](https://nodemailer.com/about/) for more details.
 
+# Installing Modules
+Don't forget to run `npm install` after cloning so that all node_modules will be added to your project.
+
 # Running the server
 You will have to run both files for this to work. You can start up both files with the pm2 node package.
 - `./index.js` will have the two routes for subscriptions and unsubscribing, Letting us control the data in the database
