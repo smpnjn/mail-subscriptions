@@ -21,6 +21,8 @@ const mailer = async function(title, obj, emailAddress) {
         let transporter = mail.createTransport({
             host: process.env.contactHost,
             port: 465,
+            pool   : true,
+            maxMessages: Infinity,
             debug: true,
             secure: true,
             auth:{
@@ -70,7 +72,7 @@ const generateEmail = async function() {
     }
 }
 
-schedule.scheduleJob("00 30 10 * * 1", async function() {
+schedule.scheduleJob('00 30 10 * * 1', async function() {
     try {
         generateEmail();
     } catch(e) {
