@@ -14,14 +14,13 @@ mongoose.connect(process.env.mongooseUri, {
     useUnifiedTopology: true,
 });
 
-const mailer = async function(title, obj, emailAddress) {	
+const mailer = async function(title, obj) {	
     try {
-        var email = await fs.readFile('./templates/mail.html', { encoding:'utf-8' } );
-        var text = replaceHTML(email, obj);
+        let email = await fs.readFile('./templates/mail.html', { encoding:'utf-8' } );
+        let text = replaceHTML(email, obj);
         let transporter = mail.createTransport({
             host: process.env.contactHost,
             port: 465,
-            pool   : true,
             maxMessages: Infinity,
             debug: true,
             secure: true,
@@ -34,47 +33,39 @@ const mailer = async function(title, obj, emailAddress) {
             }
         });
 
-        transporter.sendMail({
-            from   : `${process.env.contactEmail} <${process.env.contactEmail}>`,
-            to     : emailAddress,
-            subject: title,
-            pool   : true,
-            maxMessages: Infinity,
-            replyTo: process.env.contactEmail,
-            headers: { 'Mime-Version' : '1.0', 'X-Priority' : '3', 'Content-type' : 'text/html; charset=iso-8859-1' },
-            html   : text
-        }, (err, info) => {
-            if(err !== null) {
-                console.log(err);
-            }
-            else {
-                console.log(`Email sent to ${emailAddress} at ${new Date().toISOString()}`);
-            }
-        });
-    } catch(e) {
-        console.log(e);
-    }
-}
-
-// This will run on a CronJob
-const generateEmail = async function() {        
-    try {
         let allSubs = await Subscription.Subscription.find();
+
         allSubs.forEach(function(item) {
             if(typeof item.email !== "undefined") {
-                mailer(`This is our Subscription Email`, {
-                    'content' : "Hello, welcome to our email 👋"
-                }, item.email);
+                transporter.sendMail({
+                    from   : `${process.env.contactEmail} <${process.env.contactEmail}>`,
+                    to     : item.email,
+                    subject: title,
+                    replyTo: process.env.contactEmail,
+                    headers: { 'Mime-Version' : '1.0', 'X-Priority' : '3', 'Content-type' : 'text/html; charset=iso-8859-1' },
+                    html   : text
+                }, (err, info) => {
+                    if(err !== null) {
+                        console.log(err);
+                    }
+                    else {
+                        console.log(`Email sent to ${item.email} at ${new Date().toISOString()}`);
+                    }
+                });
             }
-        })
+        });
+
     } catch(e) {
         console.log(e);
     }
 }
 
-schedule.scheduleJob('00 30 10 * * 1', async function() {
+// Run the CronJob
+schedule.scheduleJob('*/10 * * * * *', async function() {
     try {
-        generateEmail();
+        mailer(`This is our Subscription Email`, {
+            'content' : "Hello, welcome to our email 👋"
+        });
     } catch(e) {
         console.log(e);
     }
